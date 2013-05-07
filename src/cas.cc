@@ -56,7 +56,7 @@ void Cas::initialize()
 static void cas_object_dtor(v8::Persistent<v8::Value> handle, void *)
 {
     v8::Handle<v8::Object> obj = v8::Persistent<v8::Object>::Cast(handle);
-    free_cas_pointer(obj->GetPointerFromInternalField(0));
+    free_cas_pointer(obj->GetAlignedPointerFromInternalField(0));
     handle.Dispose();
 }
 
@@ -65,7 +65,7 @@ v8::Handle<v8::Value> Cas::GetHumanReadable(v8::Local<v8::String>,
 {
     std::stringstream ss;
     uint64_t cas = cas_from_pointer(
-                       accinfo.This()->GetPointerFromInternalField(0));
+                       accinfo.This()->GetAlignedPointerFromInternalField(0));
     ss << cas;
     return v8::Local<v8::String>(v8::String::New(ss.str().c_str()));
 }
@@ -75,7 +75,7 @@ v8::Persistent<v8::Object> Cas::CreateCas(uint64_t cas)
     v8::Persistent<v8::Object> ret = v8::Persistent<v8::Object>::New(
                                          CasTemplate->NewInstance());
 
-    ret->SetPointerInInternalField(0, cas_to_pointer(cas));
+    ret->SetAlignedPointerInInternalField(0, cas_to_pointer(cas));
     ret.MakeWeak(NULL, cas_object_dtor);
 
     return ret;
@@ -84,7 +84,7 @@ v8::Persistent<v8::Object> Cas::CreateCas(uint64_t cas)
 uint64_t Cas::GetCas(v8::Handle<v8::Object> vstr)
 {
     uint64_t cas =
-        cas_from_pointer(vstr->GetPointerFromInternalField(0));
+        cas_from_pointer(vstr->GetAlignedPointerFromInternalField(0));
     if (!cas) {
         throw Couchnode::Exception("Invalid CAS", vstr);
     }
